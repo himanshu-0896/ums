@@ -25,6 +25,8 @@ class DatabaseSeeder extends Seeder
             'name' => 'Admin User',
             'email' => 'admin@gmail.com',
             'password' => bcrypt('admin123'),
+            'phone_number' => 'dgdfgd',
+            'address' => 'dfgd',
             'role' => 'admin'
         ]);
     }

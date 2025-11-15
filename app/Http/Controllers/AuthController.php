@@ -12,17 +12,36 @@ class AuthController extends Controller
 {
     public function register(Request $request){
 
+        // return response()->json([
+        //     'message' => $request->all()
+        // ]);
         try{
         $validatedata = $request->validate([
             'name' => 'required|string',
             'email' => 'required|unique:users,email',
-            'password' => 'required|min:8'
+            'password' => 'required|min:8',
+            'profile_pic' => 'nullable|mimes:jpg,jpeg,png,webp',
+            'address' => 'required|string',
+            'phone_number' => 'required|max:10'
+
         ]);
+
+        if($request->hasFile('profile_pic')){
+            $file = $request->file('profile_pic');
+            $extension = $file->getClientOriginalExtension();
+            $filename = time() .".". $extension;  
+            $file->move(public_path('uploads/images',$filename));
+        }else{
+            $filename =  'default.png';
+        }
 
        $user=  User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => bcrypt($request->password),
+            'profile_pic' => 'uploads/images/' . $filename,
+            'address' => $request->address,
+            'phone_number' => $request->phone_number,
             'role' => 'user'
         ]);
 
@@ -82,5 +101,59 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Logout Success'
         ]);
+    }
+
+    public function profile(Request $request){
+        return $request->user();
+    }
+
+    public function update(Request $request){
+
+        $user = $request->user();
+        try{
+
+        $validatedata = $request->validate([
+            'name' => 'required|string',
+            'email' => 'required|unique:users,email',
+            'password' => 'required|min:8',
+            'profile_pic' => 'nullable|mimes:jpg,jpeg,png,webp',
+            'address' => 'required|string',
+            'phone_number' => 'required|max:10'
+
+        ]);
+
+        if($request->hasFile('profile_pic')){
+            $file = $request->file('profile_pic');
+            $extension = $file->getClientOriginalExtension();
+            $filename = time() .".". $extension;  
+            $file->move(public_path('uploads/images',$filename));
+        }else{
+            $filename =  'default.png';
+        }
+
+         User::where('id',$user->id)->update([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+            'profile_pic' => 'uploads/images/' . $filename,
+            'address' => $request->address,
+            'phone_number' => $request->phone_number,
+            'role' => 'user'
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'User Updated successfully',
+            'user' => $user->fresh()
+        ]);
+
+
+        }catch(\Exception $e){
+            return response()->json([
+            'status' => 'Failed',
+            'message' => $e->getmessage(),
+        ]);
+
+        }
     }
 }
